@@ -188,12 +188,10 @@
             margin-bottom: 1rem;
         }
 
-        .principal-input {
+        .principal-display {
             margin-top: 1rem;
-            padding: 0.5rem;
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            font-weight: bold;
+            word-break: break-all;
         }
 
         .submit-button {
@@ -260,9 +258,9 @@
             <div class="celebration-emoji">🎉💰🚀</div>
             <h2>All Tasks Completed!</h2>
             <p>You've earned 6 ICP tokens!</p>
-            <p>Enter your Principal ID to receive your reward:</p>
-            <input type="text" id="principalInput" class="principal-input" placeholder="Enter your Principal ID">
-            <button id="submitPrincipal" class="submit-button">Submit</button>
+            <p>Your Principal ID:</p>
+            <div id="celebrationPrincipal" class="principal-display"></div>
+            <button id="confirmTransfer" class="submit-button">Confirm Transfer</button>
         </div>
     </div>
 
@@ -272,6 +270,7 @@
 
         let authClient;
         let isAuthenticated = false;
+        let userPrincipal = null;
 
         const tasks = [
             { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
@@ -285,23 +284,32 @@
         async function initAuth() {
             authClient = await AuthClient.create();
             isAuthenticated = await authClient.isAuthenticated();
+            if (isAuthenticated) {
+                userPrincipal = await authClient.getIdentity().getPrincipal().toText();
+            }
             updateAuthButton();
         }
 
         function updateAuthButton() {
             const authButton = document.getElementById('authButton');
-            authButton.textContent = isAuthenticated ? 'Logout' : 'Login';
+            if (isAuthenticated) {
+                authButton.textContent = userPrincipal.substring(0, 10) + '...';
+            } else {
+                authButton.textContent = 'Login';
+            }
         }
 
         async function handleAuth() {
             if (isAuthenticated) {
                 await authClient.logout();
                 isAuthenticated = false;
+                userPrincipal = null;
             } else {
                 await authClient.login({
                     identityProvider: "https://identity.ic0.app/#authorize",
-                    onSuccess: () => {
+                    onSuccess: async () => {
                         isAuthenticated = true;
+                        userPrincipal = await authClient.getIdentity().getPrincipal().toText();
                         renderTasks();
                     }
                 });
@@ -370,6 +378,7 @@
 
         function showCelebration() {
             const celebration = document.getElementById('celebration');
+            document.getElementById('celebrationPrincipal').textContent = userPrincipal;
             celebration.classList.add('show');
         }
 
@@ -386,15 +395,6 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        function validatePrincipalId(principalId) {
-            try {
-                Principal.fromText(principalId);
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
-
         function simulateIcpTransfer(principalId) {
             return new Promise((resolve) => {
                 setTimeout(() => {
@@ -404,27 +404,19 @@
             });
         }
 
-        document.getElementById('submitPrincipal').addEventListener('click', async () => {
-            const principalInput = document.getElementById('principalInput');
-            const principalId = principalInput.value.trim();
-
-            if (!validatePrincipalId(principalId)) {
-                alert('Invalid Principal ID. Please enter a valid ID.');
-                return;
-            }
-
-            document.getElementById('submitPrincipal').disabled = true;
-            document.getElementById('submitPrincipal').textContent = 'Processing...';
+        document.getElementById('confirmTransfer').addEventListener('click', async () => {
+            document.getElementById('confirmTransfer').disabled = true;
+            document.getElementById('confirmTransfer').textContent = 'Processing...';
 
             try {
-                await simulateIcpTransfer(principalId);
+                await simulateIcpTransfer(userPrincipal);
                 alert('6 ICP has been successfully transferred to your account!');
                 document.getElementById('celebration').classList.remove('show');
             } catch (error) {
                 alert('An error occurred during the transfer. Please try again.');
             } finally {
-                document.getElementById('submitPrincipal').disabled = false;
-                document.getElementById('submitPrincipal').textContent = 'Submit';
+                document.getElementById('confirmTransfer').disabled = false;
+                document.getElementById('confirmTransfer').textContent = 'Confirm Transfer';
             }
         });
 
