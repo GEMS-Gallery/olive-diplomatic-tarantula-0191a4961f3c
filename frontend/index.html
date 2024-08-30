@@ -215,8 +215,6 @@
                 <div class="date" id="currentDate"></div>
             </div>
         </div>
-        <div id="loading" class="loading">Loading tasks...</div>
-        <div id="error" class="error"></div>
         <ul class="task-list" id="taskList">
             <!-- Tasks will be added here dynamically -->
         </ul>
@@ -238,15 +236,8 @@
         </div>
     </div>
 
-    <script type="module">
-        import { Actor, HttpAgent } from "@dfinity/agent";
-        import { idlFactory } from "./declarations/backend/backend.did.js";
-        import { Principal } from "@dfinity/principal";
-
-        const canisterId = 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Make sure this is the correct canister ID
-        let actor;
-
-        const defaultTasks = [
+    <script>
+        const tasks = [
             { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
             { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 2 },
             { id: 3, text: "Deploy a canister", completed: false, icon: "🚀", reward: 3 },
@@ -255,37 +246,7 @@
             { id: 6, text: "Create a decentralized frontend", completed: false, icon: "🌐", reward: 5 }
         ];
 
-        async function initializeActor() {
-            try {
-                const agent = new HttpAgent();
-                await agent.fetchRootKey();
-                actor = Actor.createActor(idlFactory, { agent, canisterId: Principal.fromText(canisterId) });
-                console.log('Actor initialized successfully');
-                return true;
-            } catch (error) {
-                console.error('Error initializing actor:', error);
-                showError('Failed to initialize the application. Please try again later.');
-                return false;
-            }
-        }
-
-        async function fetchTasks() {
-            try {
-                if (!actor) {
-                    throw new Error('Actor not initialized');
-                }
-                const tasks = await actor.getTasks();
-                renderTasks(tasks);
-            } catch (error) {
-                console.error('Error fetching tasks:', error);
-                showError('Failed to fetch tasks from the backend. Using default tasks.');
-                renderTasks(defaultTasks);
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
-        }
-
-        function renderTasks(tasks) {
+        function renderTasks() {
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
             tasks.forEach(task => {
@@ -295,32 +256,25 @@
                     <div class="task-icon">${task.icon}</div>
                     <span class="task-text">${task.text}</span>
                     <span class="task-reward">${task.reward} ICP</span>
-                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="window.completeTask(${task.id})"></div>
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="completeTask(${task.id})"></div>
                 `;
                 taskList.appendChild(li);
             });
-            updateProgress(tasks);
+            updateProgress();
         }
 
-        async function completeTask(id) {
-            try {
-                if (!actor) {
-                    throw new Error('Actor not initialized');
-                }
-                const result = await actor.completeTask(id);
-                if ('ok' in result) {
-                    fetchTasks();
+        function completeTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+                if (task.completed) {
                     showCelebration();
-                } else {
-                    showError('Failed to complete the task. Please try again.');
                 }
-            } catch (error) {
-                console.error('Error completing task:', error);
-                showError('Failed to complete the task. The backend might be unavailable.');
             }
         }
 
-        function updateProgress(tasks) {
+        function updateProgress() {
             const completed = tasks.filter(t => t.completed).length;
             const total = tasks.length;
             const percentage = Math.round((completed / total) * 100);
@@ -342,29 +296,11 @@
             }, 3000);
         }
 
-        function showError(message) {
-            const errorElement = document.getElementById('error');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 5000);
-        }
-
         // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             updateDate();
-            const initialized = await initializeActor();
-            if (initialized) {
-                fetchTasks();
-            } else {
-                renderTasks(defaultTasks);
-                document.getElementById('loading').style.display = 'none';
-            }
+            renderTasks();
         });
-
-        // Expose completeTask to window object for onclick event
-        window.completeTask = completeTask;
     </script>
 </body>
 </html>
