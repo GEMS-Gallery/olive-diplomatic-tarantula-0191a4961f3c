@@ -28,7 +28,7 @@ actor {
   ];
   stable var taskIdCounter: Nat = 6;
 
-  public shared query(msg) func getTasks(): async [Task] {
+  public query func getTasks(): async [Task] {
     tasks
   };
 

@@ -198,6 +198,12 @@
             font-size: 1.2rem;
             margin-top: 2rem;
         }
+
+        .error {
+            color: #ff3860;
+            text-align: center;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -210,6 +216,7 @@
             </div>
         </div>
         <div id="loading" class="loading">Loading tasks...</div>
+        <div id="error" class="error"></div>
         <ul class="task-list" id="taskList">
             <!-- Tasks will be added here dynamically -->
         </ul>
@@ -257,6 +264,7 @@
                 return true;
             } catch (error) {
                 console.error('Error initializing actor:', error);
+                showError('Failed to initialize the application. Please try again later.');
                 return false;
             }
         }
@@ -270,6 +278,7 @@
                 renderTasks(tasks);
             } catch (error) {
                 console.error('Error fetching tasks:', error);
+                showError('Failed to fetch tasks. Using default tasks.');
                 renderTasks(defaultTasks);
             } finally {
                 document.getElementById('loading').style.display = 'none';
@@ -302,9 +311,12 @@
                 if ('ok' in result) {
                     fetchTasks();
                     showCelebration();
+                } else {
+                    showError('Failed to complete the task. Please try again.');
                 }
             } catch (error) {
                 console.error('Error completing task:', error);
+                showError('Failed to complete the task. Please try again.');
             }
         }
 
@@ -328,6 +340,15 @@
             setTimeout(() => {
                 celebration.classList.remove('show');
             }, 3000);
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
         }
 
         // Initialize
