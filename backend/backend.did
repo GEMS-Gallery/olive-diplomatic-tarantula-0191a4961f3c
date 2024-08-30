@@ -1,0 +1,21 @@
+type Task = 
+ record {
+   completed: bool;
+   icon: text;
+   id: nat;
+   "text": text;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: Task;
+ };
+service : {
+  addTask: (text, text) -> (Result);
+  getProgress: () -> (record {
+                        completed: nat;
+                        total: nat;
+                      }) query;
+  getTasks: () -> (vec Task) query;
+  toggleTask: (nat) -> (Result);
+}
