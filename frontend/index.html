@@ -216,8 +216,14 @@
             color: var(--secondary-color);
         }
 
-        .auth-button {
+        .auth-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 1rem;
+        }
+
+        .auth-button, .logout-button {
             padding: 0.5rem 1rem;
             background-color: var(--primary-color);
             color: white;
@@ -226,8 +232,22 @@
             cursor: pointer;
         }
 
-        .auth-button:hover {
+        .auth-button:hover, .logout-button:hover {
             background-color: #5469d4;
+        }
+
+        .logout-button {
+            background-color: #ff4757;
+        }
+
+        .logout-button:hover {
+            background-color: #ff6b81;
+        }
+
+        .principal-id {
+            font-size: 0.9rem;
+            color: #8898aa;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -240,7 +260,11 @@
                 <div class="date" id="currentDate"></div>
             </div>
         </div>
-        <button id="authButton" class="auth-button">Login</button>
+        <div class="auth-container">
+            <button id="authButton" class="auth-button">Login</button>
+            <div id="principalId" class="principal-id"></div>
+            <button id="logoutButton" class="logout-button" style="display: none;">Logout</button>
+        </div>
         <ul class="task-list" id="taskList">
             <!-- Tasks will be added here dynamically -->
         </ul>
@@ -287,34 +311,45 @@
             if (isAuthenticated) {
                 userPrincipal = await authClient.getIdentity().getPrincipal().toText();
             }
-            updateAuthButton();
+            updateAuthUI();
         }
 
-        function updateAuthButton() {
+        function updateAuthUI() {
             const authButton = document.getElementById('authButton');
+            const logoutButton = document.getElementById('logoutButton');
+            const principalIdElement = document.getElementById('principalId');
+
             if (isAuthenticated) {
-                authButton.textContent = userPrincipal.substring(0, 10) + '...';
+                authButton.style.display = 'none';
+                logoutButton.style.display = 'block';
+                principalIdElement.textContent = userPrincipal.substring(0, 10) + '...';
             } else {
-                authButton.textContent = 'Login';
+                authButton.style.display = 'block';
+                logoutButton.style.display = 'none';
+                principalIdElement.textContent = '';
             }
         }
 
         async function handleAuth() {
-            if (isAuthenticated) {
-                await authClient.logout();
-                isAuthenticated = false;
-                userPrincipal = null;
-            } else {
+            if (!isAuthenticated) {
                 await authClient.login({
                     identityProvider: "https://identity.ic0.app/#authorize",
                     onSuccess: async () => {
                         isAuthenticated = true;
                         userPrincipal = await authClient.getIdentity().getPrincipal().toText();
+                        updateAuthUI();
                         renderTasks();
                     }
                 });
             }
-            updateAuthButton();
+        }
+
+        async function handleLogout() {
+            await authClient.logout();
+            isAuthenticated = false;
+            userPrincipal = null;
+            updateAuthUI();
+            renderTasks();
         }
 
         function renderTasks() {
@@ -427,6 +462,7 @@
             loadProgress();
             renderTasks();
             document.getElementById('authButton').addEventListener('click', handleAuth);
+            document.getElementById('logoutButton').addEventListener('click', handleLogout);
         });
 
         // Expose handleTaskClick to window object for onclick event
