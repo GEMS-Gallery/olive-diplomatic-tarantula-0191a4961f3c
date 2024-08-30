@@ -192,6 +192,12 @@
             display: inline-block;
             animation: explode 0.5s ease-out;
         }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -203,6 +209,7 @@
                 <div class="date" id="currentDate"></div>
             </div>
         </div>
+        <div id="loading" class="loading">Loading tasks...</div>
         <ul class="task-list" id="taskList">
             <!-- Tasks will be added here dynamically -->
         </ul>
@@ -228,15 +235,30 @@
     <script>
         let principalId;
         let actor;
+        const canisterId = 'YOUR_BACKEND_CANISTER_ID';
+
+        const defaultTasks = [
+            { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
+            { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 2 },
+            { id: 3, text: "Deploy a canister", completed: false, icon: "🚀", reward: 3 },
+            { id: 4, text: "Interact with a canister using Candid UI", completed: false, icon: "🖥️", reward: 2 },
+            { id: 5, text: "Implement basic token functionality", completed: false, icon: "💰", reward: 4 },
+            { id: 6, text: "Create a decentralized frontend", completed: false, icon: "🌐", reward: 5 }
+        ];
 
         async function initializeActor() {
-            const canisterId = 'YOUR_BACKEND_CANISTER_ID';
-            const agent = new window.ic.agent.HttpAgent();
-            await agent.fetchRootKey();
-            actor = window.ic.actor.createActor(canisterId, {
-                agent,
-                canisterId,
-            });
+            try {
+                const agent = new window.ic.agent.HttpAgent();
+                await agent.fetchRootKey();
+                actor = window.ic.actor.createActor(canisterId, {
+                    agent,
+                    canisterId,
+                });
+                console.log('Actor initialized successfully');
+            } catch (error) {
+                console.error('Error initializing actor:', error);
+                renderTasks(defaultTasks);
+            }
         }
 
         async function fetchTasks() {
@@ -245,6 +267,9 @@
                 renderTasks(tasks);
             } catch (error) {
                 console.error('Error fetching tasks:', error);
+                renderTasks(defaultTasks);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
@@ -262,7 +287,7 @@
                 `;
                 taskList.appendChild(li);
             });
-            updateProgress();
+            updateProgress(tasks);
         }
 
         async function completeTask(id) {
@@ -277,15 +302,12 @@
             }
         }
 
-        async function updateProgress() {
-            try {
-                const progress = await actor.getProgress();
-                const percentage = Math.round((progress.completed / progress.total) * 100);
-                document.getElementById('progress').style.width = `${percentage}%`;
-                document.getElementById('progressText').textContent = `${progress.completed} of ${progress.total} tasks completed`;
-            } catch (error) {
-                console.error('Error updating progress:', error);
-            }
+        function updateProgress(tasks) {
+            const completed = tasks.filter(t => t.completed).length;
+            const total = tasks.length;
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progress').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
         }
 
         function updateDate() {
@@ -303,9 +325,11 @@
         }
 
         // Initialize
-        initializeActor().then(() => {
-            fetchTasks();
+        document.addEventListener('DOMContentLoaded', () => {
             updateDate();
+            initializeActor().then(() => {
+                fetchTasks();
+            });
         });
     </script>
 </body>
