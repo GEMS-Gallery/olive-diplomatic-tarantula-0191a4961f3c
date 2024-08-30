@@ -231,11 +231,12 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@dfinity/agent/lib/index.js"></script>
-    <script>
-        let principalId;
-        let actor;
+    <script type="module">
+        import { Actor, HttpAgent } from "@dfinity/agent";
+        import { idlFactory } from "./declarations/backend/backend.did.js";
+
         const canisterId = 'YOUR_BACKEND_CANISTER_ID';
+        let actor;
 
         const defaultTasks = [
             { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
@@ -248,12 +249,9 @@
 
         async function initializeActor() {
             try {
-                const agent = new window.ic.agent.HttpAgent();
+                const agent = new HttpAgent();
                 await agent.fetchRootKey();
-                actor = window.ic.actor.createActor(canisterId, {
-                    agent,
-                    canisterId,
-                });
+                actor = Actor.createActor(idlFactory, { agent, canisterId });
                 console.log('Actor initialized successfully');
             } catch (error) {
                 console.error('Error initializing actor:', error);
@@ -283,7 +281,7 @@
                     <div class="task-icon">${task.icon}</div>
                     <span class="task-text">${task.text}</span>
                     <span class="task-reward">${task.reward} ICP</span>
-                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="completeTask(${task.id})"></div>
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="window.completeTask(${task.id})"></div>
                 `;
                 taskList.appendChild(li);
             });
@@ -331,6 +329,9 @@
                 fetchTasks();
             });
         });
+
+        // Expose completeTask to window object for onclick event
+        window.completeTask = completeTask;
     </script>
 </body>
 </html>
