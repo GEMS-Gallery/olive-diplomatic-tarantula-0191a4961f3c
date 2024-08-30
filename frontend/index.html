@@ -234,8 +234,9 @@
     <script type="module">
         import { Actor, HttpAgent } from "@dfinity/agent";
         import { idlFactory } from "./declarations/backend/backend.did.js";
+        import { Principal } from "@dfinity/principal";
 
-        const canisterId = 'YOUR_BACKEND_CANISTER_ID';
+        const canisterId = 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Replace with your actual canister ID
         let actor;
 
         const defaultTasks = [
@@ -251,16 +252,20 @@
             try {
                 const agent = new HttpAgent();
                 await agent.fetchRootKey();
-                actor = Actor.createActor(idlFactory, { agent, canisterId });
+                actor = Actor.createActor(idlFactory, { agent, canisterId: Principal.fromText(canisterId) });
                 console.log('Actor initialized successfully');
+                return true;
             } catch (error) {
                 console.error('Error initializing actor:', error);
-                renderTasks(defaultTasks);
+                return false;
             }
         }
 
         async function fetchTasks() {
             try {
+                if (!actor) {
+                    throw new Error('Actor not initialized');
+                }
                 const tasks = await actor.getTasks();
                 renderTasks(tasks);
             } catch (error) {
@@ -290,6 +295,9 @@
 
         async function completeTask(id) {
             try {
+                if (!actor) {
+                    throw new Error('Actor not initialized');
+                }
                 const result = await actor.completeTask(id);
                 if ('ok' in result) {
                     fetchTasks();
@@ -323,11 +331,15 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             updateDate();
-            initializeActor().then(() => {
+            const initialized = await initializeActor();
+            if (initialized) {
                 fetchTasks();
-            });
+            } else {
+                renderTasks(defaultTasks);
+                document.getElementById('loading').style.display = 'none';
+            }
         });
 
         // Expose completeTask to window object for onclick event
