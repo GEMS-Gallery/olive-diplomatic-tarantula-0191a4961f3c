@@ -177,32 +177,37 @@
         }
 
         .celebration-content {
-            font-size: 5rem;
-            color: white;
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
             text-align: center;
-        }
-
-        @keyframes explode {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
         }
 
         .celebration-emoji {
-            display: inline-block;
-            animation: explode 0.5s ease-out;
+            font-size: 5rem;
+            margin-bottom: 1rem;
         }
 
-        .loading {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-top: 2rem;
-        }
-
-        .error {
-            color: #ff3860;
-            text-align: center;
+        .principal-input {
             margin-top: 1rem;
+            padding: 0.5rem;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .submit-button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: #5469d4;
         }
 
         .total-reward {
@@ -232,20 +237,23 @@
             </div>
             <div class="progress-text" id="progressText"></div>
         </div>
-        <div class="total-reward" id="totalReward">Total Reward: 0 / 5 ICP</div>
+        <div class="total-reward" id="totalReward">Total Reward: 0 / 6 ICP</div>
     </div>
 
     <div class="celebration" id="celebration">
         <div class="celebration-content">
-            <span class="celebration-emoji">🎉</span>
-            <span class="celebration-emoji">💰</span>
-            <span class="celebration-emoji">🚀</span>
+            <div class="celebration-emoji">🎉💰🚀</div>
             <h2>All Tasks Completed!</h2>
-            <p>You've earned 5 ICP tokens!</p>
+            <p>You've earned 6 ICP tokens!</p>
+            <p>Enter your Principal ID to receive your reward:</p>
+            <input type="text" id="principalInput" class="principal-input" placeholder="Enter your Principal ID">
+            <button id="submitPrincipal" class="submit-button">Submit</button>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { Principal } from "@dfinity/principal";
+
         const tasks = [
             { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
             { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 1 },
@@ -277,6 +285,7 @@
             if (task) {
                 task.completed = !task.completed;
                 renderTasks();
+                saveProgress();
                 if (task.completed) {
                     checkAllTasksCompleted();
                 }
@@ -289,7 +298,7 @@
             const percentage = Math.round((completed / total) * 100);
             document.getElementById('progress').style.width = `${percentage}%`;
             document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
-            document.getElementById('totalReward').textContent = `Total Reward: ${completed} / 5 ICP`;
+            document.getElementById('totalReward').textContent = `Total Reward: ${completed} / 6 ICP`;
         }
 
         function checkAllTasksCompleted() {
@@ -308,18 +317,8 @@
         function showCelebration() {
             const celebration = document.getElementById('celebration');
             celebration.classList.add('show');
-            setTimeout(() => {
-                celebration.classList.remove('show');
-            }, 5000);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            updateDate();
-            renderTasks();
-        });
-
-        // Load saved progress from local storage
         function loadProgress() {
             const savedTasks = localStorage.getItem('tasks');
             if (savedTasks) {
@@ -329,30 +328,61 @@
             }
         }
 
-        // Save progress to local storage
         function saveProgress() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        // Update completeTask function to save progress
-        function completeTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.completed = !task.completed;
-                renderTasks();
-                saveProgress();
-                if (task.completed) {
-                    checkAllTasksCompleted();
-                }
+        function validatePrincipalId(principalId) {
+            try {
+                Principal.fromText(principalId);
+                return true;
+            } catch (error) {
+                return false;
             }
         }
 
-        // Initialize with saved progress
+        function simulateIcpTransfer(principalId) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log(`Simulated ICP transfer of 6 ICP to ${principalId}`);
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        document.getElementById('submitPrincipal').addEventListener('click', async () => {
+            const principalInput = document.getElementById('principalInput');
+            const principalId = principalInput.value.trim();
+
+            if (!validatePrincipalId(principalId)) {
+                alert('Invalid Principal ID. Please enter a valid ID.');
+                return;
+            }
+
+            document.getElementById('submitPrincipal').disabled = true;
+            document.getElementById('submitPrincipal').textContent = 'Processing...';
+
+            try {
+                await simulateIcpTransfer(principalId);
+                alert('6 ICP has been successfully transferred to your account!');
+                document.getElementById('celebration').classList.remove('show');
+            } catch (error) {
+                alert('An error occurred during the transfer. Please try again.');
+            } finally {
+                document.getElementById('submitPrincipal').disabled = false;
+                document.getElementById('submitPrincipal').textContent = 'Submit';
+            }
+        });
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             updateDate();
             loadProgress();
             renderTasks();
         });
+
+        // Expose completeTask to window object for onclick event
+        window.completeTask = completeTask;
     </script>
 </body>
 </html>
