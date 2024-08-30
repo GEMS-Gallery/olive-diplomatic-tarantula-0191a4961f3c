@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KidTask - Jack's Chore Champion</title>
+    <title>IC Blockchain Class - Learn and Earn ICP</title>
     <style>
         :root {
             --primary-color: #6772e5;
@@ -97,6 +97,12 @@
             font-weight: 500;
         }
 
+        .task-reward {
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-right: 1rem;
+        }
+
         .task-checkbox {
             width: 20px;
             height: 20px;
@@ -146,42 +152,6 @@
             color: #8898aa;
         }
 
-        .add-task {
-            margin-top: 2rem;
-        }
-
-        .add-task input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #e6ebf1;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .add-task input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .add-task button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 0.5rem;
-        }
-
-        .add-task button:hover {
-            background-color: #7795f8;
-        }
-
         .celebration {
             position: fixed;
             top: 0;
@@ -226,7 +196,7 @@
         <div class="header">
             <img src="/api/placeholder/60/60" alt="Profile Picture" class="profile-pic">
             <div class="greeting">
-                <h1>Hi, Jack!</h1>
+                <h1>Welcome to IC Blockchain Class!</h1>
                 <div class="date" id="currentDate"></div>
             </div>
         </div>
@@ -239,33 +209,43 @@
             </div>
             <div class="progress-text" id="progressText"></div>
         </div>
-        <div class="add-task">
-            <input type="text" id="newTask" placeholder="Add a new task">
-            <button onclick="addTask()">Add Task</button>
-        </div>
     </div>
 
     <div class="celebration" id="celebration">
         <div class="celebration-content">
             <span class="celebration-emoji">🎉</span>
-            <span class="celebration-emoji">🎊</span>
+            <span class="celebration-emoji">💰</span>
             <span class="celebration-emoji">🚀</span>
-            <h2>All tasks completed!</h2>
-            <p>You're a chore champion, Jack!</p>
+            <h2>Task Completed!</h2>
+            <p>You've earned ICP tokens!</p>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@dfinity/agent/lib/index.js"></script>
     <script>
-        const tasks = [
-            { id: 1, text: "Brush teeth", completed: false, icon: "🦷" },
-            { id: 2, text: "Make bed", completed: false, icon: "🛏️" },
-            { id: 3, text: "Get dressed", completed: false, icon: "👕" },
-            { id: 4, text: "Eat breakfast", completed: false, icon: "🥣" },
-            { id: 5, text: "Pack backpack", completed: false, icon: "🎒" },
-            { id: 6, text: "Clean up dog poop", completed: false, icon: "💩" }
-        ];
+        let principalId;
+        let actor;
 
-        function renderTasks() {
+        async function initializeActor() {
+            const canisterId = 'YOUR_BACKEND_CANISTER_ID';
+            const agent = new window.ic.agent.HttpAgent();
+            await agent.fetchRootKey();
+            actor = window.ic.actor.createActor(canisterId, {
+                agent,
+                canisterId,
+            });
+        }
+
+        async function fetchTasks() {
+            try {
+                const tasks = await actor.getTasks();
+                renderTasks(tasks);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+        function renderTasks(tasks) {
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
             tasks.forEach(task => {
@@ -274,38 +254,34 @@
                 li.innerHTML = `
                     <span class="task-icon">${task.icon}</span>
                     <span class="task-text">${task.text}</span>
-                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                    <span class="task-reward">${task.reward} ICP</span>
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="completeTask(${task.id})"></div>
                 `;
                 taskList.appendChild(li);
             });
             updateProgress();
         }
 
-        function toggleTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.completed = !task.completed;
-                renderTasks();
-                checkAllTasksCompleted();
+        async function completeTask(id) {
+            try {
+                const result = await actor.completeTask(id);
+                if ('ok' in result) {
+                    fetchTasks();
+                    showCelebration();
+                }
+            } catch (error) {
+                console.error('Error completing task:', error);
             }
         }
 
-        function updateProgress() {
-            const completed = tasks.filter(t => t.completed).length;
-            const total = tasks.length;
-            const percentage = Math.round((completed / total) * 100);
-            document.getElementById('progress').style.width = `${percentage}%`;
-            document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
-        }
-
-        function addTask() {
-            const newTaskInput = document.getElementById('newTask');
-            const text = newTaskInput.value.trim();
-            if (text) {
-                const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-                tasks.push({ id: newId, text, completed: false, icon: "✨" });
-                newTaskInput.value = '';
-                renderTasks();
+        async function updateProgress() {
+            try {
+                const progress = await actor.getProgress();
+                const percentage = Math.round((progress.completed / progress.total) * 100);
+                document.getElementById('progress').style.width = `${percentage}%`;
+                document.getElementById('progressText').textContent = `${progress.completed} of ${progress.total} tasks completed`;
+            } catch (error) {
+                console.error('Error updating progress:', error);
             }
         }
 
@@ -313,12 +289,6 @@
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
-        }
-
-        function checkAllTasksCompleted() {
-            if (tasks.every(task => task.completed)) {
-                showCelebration();
-            }
         }
 
         function showCelebration() {
@@ -329,9 +299,11 @@
             }, 3000);
         }
 
-        // Initial render
-        renderTasks();
-        updateDate();
+        // Initialize
+        initializeActor().then(() => {
+            fetchTasks();
+            updateDate();
+        });
     </script>
 </body>
 </html>

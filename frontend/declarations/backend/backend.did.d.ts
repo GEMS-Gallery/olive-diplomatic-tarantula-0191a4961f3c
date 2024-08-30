@@ -6,15 +6,16 @@ export type Result = { 'ok' : Task } |
   { 'err' : string };
 export interface Task {
   'id' : bigint,
+  'reward' : bigint,
   'icon' : string,
   'text' : string,
   'completed' : boolean,
 }
 export interface _SERVICE {
-  'addTask' : ActorMethod<[string, string], Result>,
+  'addTask' : ActorMethod<[string, string, bigint], Result>,
+  'completeTask' : ActorMethod<[bigint], Result>,
   'getProgress' : ActorMethod<[], { 'total' : bigint, 'completed' : bigint }>,
   'getTasks' : ActorMethod<[], Array<Task>>,
-  'toggleTask' : ActorMethod<[bigint], Result>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

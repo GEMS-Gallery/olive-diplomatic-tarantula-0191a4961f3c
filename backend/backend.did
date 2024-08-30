@@ -3,6 +3,7 @@ type Task =
    completed: bool;
    icon: text;
    id: nat;
+   reward: nat;
    "text": text;
  };
 type Result = 
@@ -11,11 +12,11 @@ type Result =
    ok: Task;
  };
 service : {
-  addTask: (text, text) -> (Result);
+  addTask: (text, text, nat) -> (Result);
+  completeTask: (nat) -> (Result);
   getProgress: () -> (record {
                         completed: nat;
                         total: nat;
                       }) query;
-  getTasks: () -> (vec Task) query;
-  toggleTask: (nat) -> (Result);
+  getTasks: () -> (vec Task);
 }
