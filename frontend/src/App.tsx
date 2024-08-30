@@ -121,7 +121,7 @@ const App: React.FC = () => {
   return (
     <StyledContainer maxWidth="sm">
       <Header>
-        <ProfilePic src="https://images.unsplash.com/photo-1491013516836-7db643ee125a?ixid=M3w2MzIxNTd8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MjUwNDMyNTN8&ixlib=rb-4.0.3" alt="Profile Picture" />
+        <ProfilePic src="/api/placeholder/60/60" alt="Profile Picture" />
         <div>
           <Typography variant="h4">Hi, Jack!</Typography>
           <Typography variant="subtitle1">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Typography>
