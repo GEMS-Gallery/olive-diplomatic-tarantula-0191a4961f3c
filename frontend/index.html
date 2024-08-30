@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IC Blockchain Class - Learn and Earn ICP</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
             --primary-color: #6772e5;
@@ -12,6 +13,7 @@
             --card-color: #ffffff;
             --text-color: #32325d;
             --border-radius: 8px;
+            --menu-width: 250px;
         }
 
         body {
@@ -22,17 +24,43 @@
             padding: 0;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+        }
+
+        .menu {
+            width: var(--menu-width);
+            background-color: var(--card-color);
+            padding: 2rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item {
+            display: flex;
             align-items: center;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background-color: var(--background-color);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .menu-item i {
+            margin-right: 0.5rem;
         }
 
         .container {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--card-color);
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            flex-grow: 1;
             padding: 2rem;
+            max-width: 480px;
+            margin: 0 auto;
         }
 
         .header {
@@ -258,9 +286,35 @@
             color: #8898aa;
             text-align: center;
         }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .menu {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="menu">
+        <div class="menu-item active">
+            <i class="material-icons">school</i>
+            Course 1: IC Basics
+        </div>
+        <div class="menu-item">
+            <i class="material-icons">code</i>
+            Course 2: Coming Soon
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <img src="https://picsum.photos/60" alt="Profile Picture" class="profile-pic">
