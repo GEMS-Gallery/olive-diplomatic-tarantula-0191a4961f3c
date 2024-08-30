@@ -15,7 +15,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Record({ 'total' : IDL.Nat, 'completed' : IDL.Nat })],
         ['query'],
       ),
-    'getTasks' : IDL.Func([], [IDL.Vec(Task)], []),
+    'getTasks' : IDL.Func([], [IDL.Vec(Task)], ['query']),
   });
 };
 export const init = ({ IDL }) => { return []; };

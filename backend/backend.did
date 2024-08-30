@@ -18,5 +18,5 @@ service : {
                         completed: nat;
                         total: nat;
                       }) query;
-  getTasks: () -> (vec Task);
+  getTasks: () -> (vec Task) query;
 }
