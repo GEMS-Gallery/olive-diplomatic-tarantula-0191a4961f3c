@@ -287,6 +287,26 @@
             text-align: center;
         }
 
+        .course-content {
+            display: none;
+        }
+
+        .course-content.active {
+            display: block;
+        }
+
+        .coming-soon {
+            text-align: center;
+            padding: 2rem;
+            background-color: #f7fafc;
+            border-radius: var(--border-radius);
+            margin-top: 2rem;
+        }
+
+        .coming-soon h2 {
+            color: var(--primary-color);
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -305,11 +325,11 @@
 </head>
 <body>
     <div class="menu">
-        <div class="menu-item active">
+        <div class="menu-item active" data-course="1">
             <i class="material-icons">school</i>
             Course 1: IC Basics
         </div>
-        <div class="menu-item">
+        <div class="menu-item" data-course="2">
             <i class="material-icons">code</i>
             Course 2: Coming Soon
         </div>
@@ -328,16 +348,25 @@
             <div id="principalId" class="principal-id"></div>
             <button id="logoutButton" class="logout-button" style="display: none;">Logout</button>
         </div>
-        <ul class="task-list" id="taskList">
-            <!-- Tasks will be added here dynamically -->
-        </ul>
-        <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress" id="progress"></div>
+        <div id="course1Content" class="course-content active">
+            <ul class="task-list" id="taskList">
+                <!-- Tasks will be added here dynamically -->
+            </ul>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="progress-text" id="progressText"></div>
             </div>
-            <div class="progress-text" id="progressText"></div>
+            <div class="total-reward" id="totalReward">Total Reward: 0 / 6 ICP</div>
         </div>
-        <div class="total-reward" id="totalReward">Total Reward: 0 / 6 ICP</div>
+        <div id="course2Content" class="course-content">
+            <div class="coming-soon">
+                <h2>Course 2: Advanced IC Development</h2>
+                <p>We're working hard to bring you more exciting content!</p>
+                <p>Stay tuned for advanced topics in Internet Computer development.</p>
+            </div>
+        </div>
         <div class="disclaimer">
             <p>Disclaimer: This is a demonstration of GEMS capabilities. No real ICP tokens are being transferred. This showcase illustrates the potential of blockchain technology in educational contexts.</p>
         </div>
@@ -506,6 +535,18 @@
             });
         }
 
+        function switchCourse(courseNumber) {
+            document.querySelectorAll('.course-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`course${courseNumber}Content`).classList.add('active');
+
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.menu-item[data-course="${courseNumber}"]`).classList.add('active');
+        }
+
         document.getElementById('confirmTransfer').addEventListener('click', async () => {
             document.getElementById('confirmTransfer').disabled = true;
             document.getElementById('confirmTransfer').textContent = 'Processing...';
@@ -530,6 +571,14 @@
             renderTasks();
             document.getElementById('authButton').addEventListener('click', handleAuth);
             document.getElementById('logoutButton').addEventListener('click', handleLogout);
+
+            // Add event listeners for course switching
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const courseNumber = e.currentTarget.getAttribute('data-course');
+                    switchCourse(courseNumber);
+                });
+            });
         });
 
         // Expose handleTaskClick to window object for onclick event
