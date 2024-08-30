@@ -307,6 +307,11 @@
             color: var(--primary-color);
         }
 
+        .locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -329,7 +334,7 @@
             <i class="material-icons">school</i>
             Course 1: IC Basics
         </div>
-        <div class="menu-item" data-course="2">
+        <div class="menu-item locked" data-course="2">
             <i class="material-icons">code</i>
             Course 2: Coming Soon
         </div>
@@ -392,22 +397,26 @@
         let isAuthenticated = false;
         let userPrincipal = null;
 
-        const tasks = [
-            { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
-            { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 1 },
-            { id: 3, text: "Deploy a canister", completed: false, icon: "🚀", reward: 1 },
-            { id: 4, text: "Interact with a canister using Candid UI", completed: false, icon: "🖥️", reward: 1 },
-            { id: 5, text: "Implement basic token functionality", completed: false, icon: "💰", reward: 1 },
-            { id: 6, text: "Create a decentralized frontend", completed: false, icon: "🌐", reward: 1 }
+        const initialTasks = [
+            { id: 1, text: "Set up Internet Identity", icon: "🔑", reward: 1 },
+            { id: 2, text: "Create an app on GEMS", icon: "💎", reward: 1 },
+            { id: 3, text: "Deploy a canister", icon: "🚀", reward: 1 },
+            { id: 4, text: "Interact with a canister using Candid UI", icon: "🖥️", reward: 1 },
+            { id: 5, text: "Implement basic token functionality", icon: "💰", reward: 1 },
+            { id: 6, text: "Create a decentralized frontend", icon: "🌐", reward: 1 }
         ];
+
+        let userTasks = {};
 
         async function initAuth() {
             authClient = await AuthClient.create();
             isAuthenticated = await authClient.isAuthenticated();
             if (isAuthenticated) {
                 userPrincipal = await authClient.getIdentity().getPrincipal().toText();
+                await loadUserTasks();
             }
             updateAuthUI();
+            updateCourseAccess();
         }
 
         function updateAuthUI() {
@@ -433,8 +442,10 @@
                     onSuccess: async () => {
                         isAuthenticated = true;
                         userPrincipal = await authClient.getIdentity().getPrincipal().toText();
+                        await loadUserTasks();
                         updateAuthUI();
                         renderTasks();
+                        updateCourseAccess();
                     }
                 });
             }
@@ -444,14 +455,35 @@
             await authClient.logout();
             isAuthenticated = false;
             userPrincipal = null;
+            userTasks = {};
             updateAuthUI();
             renderTasks();
+            updateCourseAccess();
+        }
+
+        async function loadUserTasks() {
+            // Simulating server-side storage
+            const savedTasks = localStorage.getItem(userPrincipal);
+            if (savedTasks) {
+                userTasks = JSON.parse(savedTasks);
+            } else {
+                userTasks = initialTasks.reduce((acc, task) => {
+                    acc[task.id] = { ...task, completed: false };
+                    return acc;
+                }, {});
+                await saveUserTasks();
+            }
+        }
+
+        async function saveUserTasks() {
+            // Simulating server-side storage
+            localStorage.setItem(userPrincipal, JSON.stringify(userTasks));
         }
 
         function renderTasks() {
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
-            tasks.forEach(task => {
+            Object.values(userTasks).forEach(task => {
                 const li = document.createElement('li');
                 li.className = 'task-item';
                 li.innerHTML = `
@@ -473,21 +505,19 @@
             completeTask(id);
         }
 
-        function completeTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.completed = !task.completed;
+        async function completeTask(id) {
+            if (userTasks[id]) {
+                userTasks[id].completed = !userTasks[id].completed;
+                await saveUserTasks();
                 renderTasks();
-                saveProgress();
-                if (task.completed) {
-                    checkAllTasksCompleted();
-                }
+                checkAllTasksCompleted();
+                updateCourseAccess();
             }
         }
 
         function updateProgress() {
-            const completed = tasks.filter(t => t.completed).length;
-            const total = tasks.length;
+            const completed = Object.values(userTasks).filter(t => t.completed).length;
+            const total = Object.keys(userTasks).length;
             const percentage = Math.round((completed / total) * 100);
             document.getElementById('progress').style.width = `${percentage}%`;
             document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
@@ -495,7 +525,7 @@
         }
 
         function checkAllTasksCompleted() {
-            const allCompleted = tasks.every(task => task.completed);
+            const allCompleted = Object.values(userTasks).every(task => task.completed);
             if (allCompleted) {
                 showCelebration();
             }
@@ -513,17 +543,14 @@
             celebration.classList.add('show');
         }
 
-        function loadProgress() {
-            const savedTasks = localStorage.getItem('tasks');
-            if (savedTasks) {
-                tasks.forEach((task, index) => {
-                    task.completed = JSON.parse(savedTasks)[index].completed;
-                });
+        function updateCourseAccess() {
+            const course2MenuItem = document.querySelector('.menu-item[data-course="2"]');
+            const allCompleted = Object.values(userTasks).every(task => task.completed);
+            if (allCompleted) {
+                course2MenuItem.classList.remove('locked');
+            } else {
+                course2MenuItem.classList.add('locked');
             }
-        }
-
-        function saveProgress() {
-            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
         function simulateIcpTransfer(principalId) {
@@ -536,6 +563,10 @@
         }
 
         function switchCourse(courseNumber) {
+            if (courseNumber === '2' && !isCourse1Completed()) {
+                alert('Please complete Course 1 before accessing Course 2.');
+                return;
+            }
             document.querySelectorAll('.course-content').forEach(content => {
                 content.classList.remove('active');
             });
@@ -545,6 +576,10 @@
                 item.classList.remove('active');
             });
             document.querySelector(`.menu-item[data-course="${courseNumber}"]`).classList.add('active');
+        }
+
+        function isCourse1Completed() {
+            return Object.values(userTasks).every(task => task.completed);
         }
 
         document.getElementById('confirmTransfer').addEventListener('click', async () => {
@@ -567,7 +602,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             updateDate();
             await initAuth();
-            loadProgress();
             renderTasks();
             document.getElementById('authButton').addEventListener('click', handleAuth);
             document.getElementById('logoutButton').addEventListener('click', handleLogout);
