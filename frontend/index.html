@@ -249,6 +249,15 @@
             color: #8898aa;
             word-break: break-all;
         }
+
+        .disclaimer {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e6ebf1;
+            font-size: 0.8rem;
+            color: #8898aa;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -275,6 +284,9 @@
             <div class="progress-text" id="progressText"></div>
         </div>
         <div class="total-reward" id="totalReward">Total Reward: 0 / 6 ICP</div>
+        <div class="disclaimer">
+            <p>Disclaimer: This is a demonstration of GEMS capabilities. No real ICP tokens are being transferred. This showcase illustrates the potential of blockchain technology in educational contexts.</p>
+        </div>
     </div>
 
     <div class="celebration" id="celebration">
@@ -285,6 +297,7 @@
             <p>Your Principal ID:</p>
             <div id="celebrationPrincipal" class="principal-display"></div>
             <button id="confirmTransfer" class="submit-button">Confirm Transfer</button>
+            <p class="disclaimer">Remember: This is a simulation. No real ICP tokens are being transferred.</p>
         </div>
     </div>
 
@@ -445,10 +458,10 @@
 
             try {
                 await simulateIcpTransfer(userPrincipal);
-                alert('6 ICP has been successfully transferred to your account!');
+                alert('Simulation complete: 6 ICP would have been transferred to your account in a real application.');
                 document.getElementById('celebration').classList.remove('show');
             } catch (error) {
-                alert('An error occurred during the transfer. Please try again.');
+                alert('An error occurred during the simulation. Please try again.');
             } finally {
                 document.getElementById('confirmTransfer').disabled = false;
                 document.getElementById('confirmTransfer').textContent = 'Confirm Transfer';
