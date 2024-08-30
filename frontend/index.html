@@ -204,6 +204,14 @@
             text-align: center;
             margin-top: 1rem;
         }
+
+        .total-reward {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            color: var(--secondary-color);
+        }
     </style>
 </head>
 <body>
@@ -224,6 +232,7 @@
             </div>
             <div class="progress-text" id="progressText"></div>
         </div>
+        <div class="total-reward" id="totalReward">Total Reward: 0 / 5 ICP</div>
     </div>
 
     <div class="celebration" id="celebration">
@@ -231,19 +240,19 @@
             <span class="celebration-emoji">🎉</span>
             <span class="celebration-emoji">💰</span>
             <span class="celebration-emoji">🚀</span>
-            <h2>Task Completed!</h2>
-            <p>You've earned ICP tokens!</p>
+            <h2>All Tasks Completed!</h2>
+            <p>You've earned 5 ICP tokens!</p>
         </div>
     </div>
 
     <script>
         const tasks = [
             { id: 1, text: "Set up Internet Identity", completed: false, icon: "🔑", reward: 1 },
-            { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 2 },
-            { id: 3, text: "Deploy a canister", completed: false, icon: "🚀", reward: 3 },
-            { id: 4, text: "Interact with a canister using Candid UI", completed: false, icon: "🖥️", reward: 2 },
-            { id: 5, text: "Implement basic token functionality", completed: false, icon: "💰", reward: 4 },
-            { id: 6, text: "Create a decentralized frontend", completed: false, icon: "🌐", reward: 5 }
+            { id: 2, text: "Create an app on GEMS", completed: false, icon: "💎", reward: 1 },
+            { id: 3, text: "Deploy a canister", completed: false, icon: "🚀", reward: 1 },
+            { id: 4, text: "Interact with a canister using Candid UI", completed: false, icon: "🖥️", reward: 1 },
+            { id: 5, text: "Implement basic token functionality", completed: false, icon: "💰", reward: 1 },
+            { id: 6, text: "Create a decentralized frontend", completed: false, icon: "🌐", reward: 1 }
         ];
 
         function renderTasks() {
@@ -269,7 +278,7 @@
                 task.completed = !task.completed;
                 renderTasks();
                 if (task.completed) {
-                    showCelebration();
+                    checkAllTasksCompleted();
                 }
             }
         }
@@ -280,6 +289,14 @@
             const percentage = Math.round((completed / total) * 100);
             document.getElementById('progress').style.width = `${percentage}%`;
             document.getElementById('progressText').textContent = `${completed} of ${total} tasks completed`;
+            document.getElementById('totalReward').textContent = `Total Reward: ${completed} / 5 ICP`;
+        }
+
+        function checkAllTasksCompleted() {
+            const allCompleted = tasks.every(task => task.completed);
+            if (allCompleted) {
+                showCelebration();
+            }
         }
 
         function updateDate() {
@@ -293,12 +310,47 @@
             celebration.classList.add('show');
             setTimeout(() => {
                 celebration.classList.remove('show');
-            }, 3000);
+            }, 5000);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             updateDate();
+            renderTasks();
+        });
+
+        // Load saved progress from local storage
+        function loadProgress() {
+            const savedTasks = localStorage.getItem('tasks');
+            if (savedTasks) {
+                tasks.forEach((task, index) => {
+                    task.completed = JSON.parse(savedTasks)[index].completed;
+                });
+            }
+        }
+
+        // Save progress to local storage
+        function saveProgress() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // Update completeTask function to save progress
+        function completeTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderTasks();
+                saveProgress();
+                if (task.completed) {
+                    checkAllTasksCompleted();
+                }
+            }
+        }
+
+        // Initialize with saved progress
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDate();
+            loadProgress();
             renderTasks();
         });
     </script>
