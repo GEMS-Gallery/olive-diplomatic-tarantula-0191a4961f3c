@@ -4,9 +4,353 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KidTask - Jack's Chore Champion</title>
+    <style>
+        :root {
+            --primary-color: #6772e5;
+            --secondary-color: #24b47e;
+            --background-color: #f6f9fc;
+            --card-color: #ffffff;
+            --text-color: #32325d;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-pic {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+
+        .greeting {
+            flex-grow: 1;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .date {
+            font-size: 0.9rem;
+            color: #8898aa;
+        }
+
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .task-item {
+            background-color: #f7fafc;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 1rem;
+            font-size: 24px;
+        }
+
+        .task-text {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .task-checkbox.checked {
+            background-color: var(--primary-color);
+            position: relative;
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+        }
+
+        .progress-container {
+            margin-top: 2rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e6ebf1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #8898aa;
+        }
+
+        .add-task {
+            margin-top: 2rem;
+        }
+
+        .add-task input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e6ebf1;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .add-task input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .add-task button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .add-task button:hover {
+            background-color: #7795f8;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .celebration.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .celebration-content {
+            font-size: 5rem;
+            color: white;
+            text-align: center;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .celebration-emoji {
+            display: inline-block;
+            animation: explode 0.5s ease-out;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div class="container">
+        <div class="header">
+            <img src="/api/placeholder/60/60" alt="Profile Picture" class="profile-pic">
+            <div class="greeting">
+                <h1>Hi, Jack!</h1>
+                <div class="date" id="currentDate"></div>
+            </div>
+        </div>
+        <ul class="task-list" id="taskList">
+            <!-- Tasks will be added here dynamically -->
+        </ul>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="progress-text" id="progressText"></div>
+        </div>
+        <div class="add-task">
+            <input type="text" id="newTask" placeholder="Add a new task">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <span class="celebration-emoji">🎉</span>
+            <span class="celebration-emoji">🎊</span>
+            <span class="celebration-emoji">🚀</span>
+            <h2>All tasks completed!</h2>
+            <p>You're a chore champion, Jack!</p>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                tasks = await response.json();
+                renderTasks();
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                li.innerHTML = `
+                    <span class="task-icon">${task.icon}</span>
+                    <span class="task-text">${task.text}</span>
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                `;
+                taskList.appendChild(li);
+            });
+            updateProgress();
+        }
+
+        async function toggleTask(id) {
+            try {
+                const response = await fetch(`/api/tasks/${id}/toggle`, { method: 'POST' });
+                const updatedTask = await response.json();
+                tasks = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+                renderTasks();
+                checkAllTasksCompleted();
+            } catch (error) {
+                console.error('Error toggling task:', error);
+            }
+        }
+
+        async function updateProgress() {
+            try {
+                const response = await fetch('/api/progress');
+                const progress = await response.json();
+                const percentage = Math.round((progress.completed / progress.total) * 100);
+                document.getElementById('progress').style.width = `${percentage}%`;
+                document.getElementById('progressText').textContent = `${progress.completed} of ${progress.total} tasks completed`;
+            } catch (error) {
+                console.error('Error updating progress:', error);
+            }
+        }
+
+        async function addTask() {
+            const newTaskInput = document.getElementById('newTask');
+            const text = newTaskInput.value.trim();
+            if (text) {
+                try {
+                    const response = await fetch('/api/tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, icon: "✨" })
+                    });
+                    const newTask = await response.json();
+                    tasks.push(newTask);
+                    newTaskInput.value = '';
+                    renderTasks();
+                } catch (error) {
+                    console.error('Error adding task:', error);
+                }
+            }
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        function checkAllTasksCompleted() {
+            if (tasks.every(task => task.completed)) {
+                showCelebration();
+            }
+        }
+
+        function showCelebration() {
+            const celebration = document.getElementById('celebration');
+            celebration.classList.add('show');
+            setTimeout(() => {
+                celebration.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initial render
+        fetchTasks();
+        updateDate();
+    </script>
 </body>
 </html>

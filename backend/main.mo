@@ -14,8 +14,15 @@ actor {
     icon: Text;
   };
 
-  stable var tasks: [Task] = [];
-  stable var taskIdCounter: Nat = 0;
+  stable var tasks: [Task] = [
+    { id = 1; text = "Brush teeth"; completed = false; icon = "🦷" },
+    { id = 2; text = "Make bed"; completed = false; icon = "🛏️" },
+    { id = 3; text = "Get dressed"; completed = false; icon = "👕" },
+    { id = 4; text = "Eat breakfast"; completed = false; icon = "🥣" },
+    { id = 5; text = "Pack backpack"; completed = false; icon = "🎒" },
+    { id = 6; text = "Clean up dog poop"; completed = false; icon = "💩" }
+  ];
+  stable var taskIdCounter: Nat = 6;
 
   public query func getTasks(): async [Task] {
     tasks
